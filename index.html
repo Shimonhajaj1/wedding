@@ -25,7 +25,8 @@
 
         h1 {
             text-align: center;
-            color: #4CAF50;
+            /* *** שינוי: צבע כחול לכותרת *** */
+            color: #007bff; /* כחול */
             margin-bottom: 30px;
         }
 
@@ -37,8 +38,9 @@
         }
 
         .card {
-            background-color: #e8f5e9; /* ירוק בהיר */
-            border: 1px solid #c8e6c9;
+            /* צבע רקע כללי שיהפוך לצבע ספציפי לסטטוס */
+            background-color: #e0e0e0; /* אפור בהיר כברירת מחדל */
+            border: 1px solid #c0c0c0;
             border-radius: 5px;
             padding: 15px;
             margin: 10px;
@@ -46,18 +48,52 @@
             min-width: 200px;
             text-align: center;
             box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+            cursor: pointer; 
+            transition: background-color 0.3s ease, border-color 0.3s ease; /* אפקט מעבר חלק בלחיצה */
+        }
+
+        /* *** שינוי: צבעים ספציפיים לכרטיסים לפי סטטוס *** */
+        .card.confirmed {
+            background-color: #d4edda; /* ירוק בהיר */
+            border-color: #28a745; /* ירוק */
+        }
+        .card.declined {
+            background-color: #f8d7da; /* אדום בהיר */
+            border-color: #dc3545; /* אדום */
+        }
+        .card.uncertain {
+            background-color: #fff3cd; /* כתום בהיר */
+            border-color: #ffc107; /* כתום */
+        }
+        .card.no-response {
+            background-color: #e2e3e5; /* אפור בהיר */
+            border-color: #6c757d; /* אפור */
+        }
+
+        .card:hover {
+            opacity: 0.8; /* קצת שקיפות בריחוף */
+        }
+
+        .card.active { /* סגנון לכרטיס שנלחץ עליו (מסנן פעיל) */
+            box-shadow: 0 0 15px rgba(0, 0, 0, 0.2); /* צל מודגש יותר */
+            transform: translateY(-2px); /* קפיצה קלה למעלה */
         }
 
         .card h2 {
-            color: #388e3c; /* ירוק כהה */
+            color: #333; /* צבע טקסט כללי, ירושה מצבע הטקסט הראשי */
             margin-top: 0;
             font-size: 1.1em;
         }
 
+        .card.confirmed h2, .card.confirmed p { color: #28a745; }
+        .card.declined h2, .card.declined p { color: #dc3545; }
+        .card.uncertain h2, .card.uncertain p { color: #ffc107; }
+        .card.no-response h2, .card.no-response p { color: #6c757d; }
+
+
         .card p {
             font-size: 1.8em;
             font-weight: bold;
-            color: #2e7d32;
         }
 
         table {
@@ -77,39 +113,50 @@
             font-weight: bold;
         }
 
-        @media (max-width: 768px) {
-            .summary-cards {
-                flex-direction: column;
-                align-items: center;
-            }
-            .card {
-                width: 90%;
-            }
+        .show-all-button {
+            display: block;
+            width: fit-content;
+            margin: 20px auto;
+            padding: 10px 20px;
+            background-color: #007bff; /* *** שינוי: כחול לכפתור הצג הכל *** */
+            color: white;
+            border: none;
+            border-radius: 5px;
+            cursor: pointer;
+            font-size: 1.1em;
+            transition: background-color 0.3s ease;
         }
+
+        .show-all-button:hover {
+            background-color: #0056b3;
+        }
+
     </style>
 </head>
 <body>
     <div class="container">
-        <h1>החתונה של מאיר ושובל</h1>
+        <h1>💎🎉 החתונה של מאיר ושובל 🎉💎</h1>
 
         <div class="summary-cards">
-            <div class="card">
+            <div class="card confirmed" id="cardConfirmed">
                 <h2>סה"כ מגיעים</h2>
                 <p id="totalConfirmed">...טוען...</p>
             </div>
-            <div class="card">
+            <div class="card declined" id="cardDeclined">
                 <h2>סה"כ לא מגיעים</h2>
                 <p id="totalDeclined">...טוען...</p>
             </div>
-            <div class="card">
+            <div class="card uncertain" id="cardUncertain">
                 <h2>סה"כ אולי-אין עדיין תשובה</h2>
                 <p id="totalUncertain">...טוען...</p>
             </div>
-            <div class="card">
+            <div class="card no-response" id="cardNoResponse">
                 <h2>שורות "אין מענה"</h2>
                 <p id="totalNoResponseRows">...טוען...</p>
             </div>
         </div>
+
+        <button class="show-all-button" id="showAllGuestsButton" style="display: none;">הצג את כל המוזמנים</button>
 
         <h2>רשימת מוזמנים</h2>
         <table id="guestTable">
@@ -128,45 +175,36 @@
     </div>
 
     <script>
-        // ************ שלב חשוב מאוד! ************
-        // הדבק כאן את כתובת ה-URL של ה-Web App שלך שקיבלת משלב 1!
+        // החלף את ה-URL הזה בכתובת ה-URL של ה-Web App שלך מ-Apps Script
         const GOOGLE_SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzRnqsZ519UaBk7hUGy3usjUaOfuy3lmZPOyOOtfGPzUfTWHMRmiRduXKn5Ox3rye1onQ/exec"; 
-        // לדוגמה: "https://script.google.com/macros/s/AKfycx.../exec";
+        
+        let allGuestsData = []; 
 
         async function fetchData() {
             try {
-                // מבצע בקשת רשת (FETCH) לכתובת ה-URL של ה-Web App
                 const response = await fetch(GOOGLE_SHEETS_WEB_APP_URL);
                 if (!response.ok) {
                     throw new Error(`HTTP error! status: ${response.status}`);
                 }
-                // המרה של התשובה לפורמט JSON
                 const data = await response.json();
-                console.log(data); // מדפיס את הנתונים לקונסול בדפדפן - שימושי לבדיקה
+                console.log(data); 
 
-                // עדכון התוכן של ריבועי הסיכום באתר
+                // עדכון ריבועי הסיכום
                 document.getElementById('totalConfirmed').textContent = data.totalConfirmed;
                 document.getElementById('totalDeclined').textContent = data.totalDeclined;
                 document.getElementById('totalUncertain').textContent = data.totalUncertain;
                 document.getElementById('totalNoResponseRows').textContent = data.totalNoResponseRows;
 
-                // עדכון טבלת המוזמנים
-                const guestTableBody = document.querySelector('#guestTable tbody');
-                guestTableBody.innerHTML = ''; // מנקה תוכן קודם בטבלה
-                
-                // עובר על כל מוזמן ברשימת המוזמנים ומכניס אותו לשורה חדשה בטבלה
-                data.guests.forEach(guest => {
-                    const row = guestTableBody.insertRow(); // יוצר שורה חדשה בטבלה
-                    row.insertCell().textContent = guest.fullName;
-                    row.insertCell().textContent = guest.phoneNumber;
-                    row.insertCell().textContent = guest.status;
-                    row.insertCell().textContent = guest.guestCount;
-                    row.insertCell().textContent = guest.notes;
-                });
+                allGuestsData = data.guests; 
+
+                // הצגת כל המוזמנים בפעם הראשונה
+                displayGuests(allGuestsData);
+                // וודא שאין מסנן פעיל בהתחלה
+                document.querySelectorAll('.card').forEach(card => card.classList.remove('active'));
+                document.getElementById('showAllGuestsButton').style.display = 'none';
 
             } catch (error) {
                 console.error("שגיאה בקבלת הנתונים:", error);
-                // במקרה של שגיאה, הצג הודעת שגיאה בריבועים ובטבלה
                 document.getElementById('totalConfirmed').textContent = "שגיאה";
                 document.getElementById('totalDeclined').textContent = "שגיאה";
                 document.getElementById('totalUncertain').textContent = "שגיאה";
@@ -175,12 +213,70 @@
             }
         }
 
-        // קורא לנתונים בפעם הראשונה כשהדף נטען
+        function displayGuests(guestsToDisplay) {
+            const guestTableBody = document.querySelector('#guestTable tbody');
+            guestTableBody.innerHTML = ''; 
+            if (guestsToDisplay.length === 0) {
+                guestTableBody.innerHTML = '<tr><td colspan="5">אין מוזמנים בסטטוס זה.</td></tr>';
+                return;
+            }
+            guestsToDisplay.forEach(guest => {
+                const row = guestTableBody.insertRow();
+                row.insertCell().textContent = guest.fullName;
+                row.insertCell().textContent = guest.phoneNumber;
+                row.insertCell().textContent = guest.status;
+                row.insertCell().textContent = guest.guestCount;
+                row.insertCell().textContent = guest.notes;
+            });
+        }
+
+        function filterGuestsByStatus(status) {
+            // הסר את ה-active class מכל הכרטיסים
+            document.querySelectorAll('.card').forEach(card => card.classList.remove('active'));
+            
+            let filteredGuests = [];
+            let activeCardId = '';
+
+            if (status === "מגיע") {
+                filteredGuests = allGuestsData.filter(guest => guest.status === "מגיע");
+                activeCardId = 'cardConfirmed';
+            } else if (status === "לא מגיע") {
+                filteredGuests = allGuestsData.filter(guest => guest.status === "לא מגיע");
+                activeCardId = 'cardDeclined';
+            } else if (status === "אולי-אין עדיין תשובה") {
+                filteredGuests = allGuestsData.filter(guest => guest.status === "אולי-אין עדיין תשובה");
+                activeCardId = 'cardUncertain';
+            } else if (status === "אין מענה") {
+                filteredGuests = allGuestsData.filter(guest => guest.status === "אין מענה");
+                activeCardId = 'cardNoResponse';
+            }
+
+            // הוסף את ה-active class לכרטיס שנלחץ
+            if (activeCardId) {
+                document.getElementById(activeCardId).classList.add('active');
+            }
+
+            displayGuests(filteredGuests);
+            document.getElementById('showAllGuestsButton').style.display = 'block'; 
+        }
+
         fetchData();
 
-        // מגדיר רענון אוטומטי של הנתונים כל 60 שניות (60000 מילישניות)
-        // זה מה שגורם לאתר "להתעדכן" כשמשנים את ה-Sheets.
         setInterval(fetchData, 60000); 
+
+        // הוספת אירועי לחיצה לריבועי הסיכום
+        document.getElementById('cardConfirmed').addEventListener('click', () => filterGuestsByStatus('מגיע'));
+        document.getElementById('cardDeclined').addEventListener('click', () => filterGuestsByStatus('לא מגיע'));
+        document.getElementById('cardUncertain').addEventListener('click', () => filterGuestsByStatus('אולי-אין עדיין תשובה'));
+        document.getElementById('cardNoResponse').addEventListener('click', () => filterGuestsByStatus('אין מענה'));
+
+        // הוספת אירוע לחיצה לכפתור "הצג הכל"
+        document.getElementById('showAllGuestsButton').addEventListener('click', () => {
+            displayGuests(allGuestsData); 
+            document.querySelectorAll('.card').forEach(card => card.classList.remove('active'));
+            document.getElementById('showAllGuestsButton').style.display = 'none';
+        });
+
     </script>
 </body>
 </html>

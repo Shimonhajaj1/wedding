@@ -1,0 +1,186 @@
+<!DOCTYPE html>
+<html lang="he" dir="rtl">
+<head>
+    <meta charset="UTF-8">
+    <meta name="viewport" content="width=device-width, initial-scale=1.0">
+    <title>החתונה של מאיר ושובל</title>
+    <style>
+        body {
+            font-family: Arial, sans-serif;
+            margin: 20px;
+            background-color: #f4f4f4;
+            color: #333;
+            direction: rtl; /* יישור לימין עבור עברית */
+            text-align: right; /* יישור לימין */
+        }
+
+        .container {
+            max-width: 900px;
+            margin: 0 auto;
+            background-color: #fff;
+            padding: 20px;
+            border-radius: 8px;
+            box-shadow: 0 0 10px rgba(0, 0, 0, 0.1);
+        }
+
+        h1 {
+            text-align: center;
+            color: #4CAF50;
+            margin-bottom: 30px;
+        }
+
+        .summary-cards {
+            display: flex;
+            justify-content: space-around;
+            flex-wrap: wrap;
+            margin-bottom: 30px;
+        }
+
+        .card {
+            background-color: #e8f5e9; /* ירוק בהיר */
+            border: 1px solid #c8e6c9;
+            border-radius: 5px;
+            padding: 15px;
+            margin: 10px;
+            flex: 1;
+            min-width: 200px;
+            text-align: center;
+            box-shadow: 0 2px 4px rgba(0, 0, 0, 0.05);
+        }
+
+        .card h2 {
+            color: #388e3c; /* ירוק כהה */
+            margin-top: 0;
+            font-size: 1.1em;
+        }
+
+        .card p {
+            font-size: 1.8em;
+            font-weight: bold;
+            color: #2e7d32;
+        }
+
+        table {
+            width: 100%;
+            border-collapse: collapse;
+            margin-top: 20px;
+        }
+
+        table th, table td {
+            border: 1px solid #ddd;
+            padding: 8px;
+            text-align: right;
+        }
+
+        table th {
+            background-color: #f2f2f2;
+            font-weight: bold;
+        }
+
+        @media (max-width: 768px) {
+            .summary-cards {
+                flex-direction: column;
+                align-items: center;
+            }
+            .card {
+                width: 90%;
+            }
+        }
+    </style>
+</head>
+<body>
+    <div class="container">
+        <h1>החתונה של מאיר ושובל</h1>
+
+        <div class="summary-cards">
+            <div class="card">
+                <h2>סה"כ מגיעים</h2>
+                <p id="totalConfirmed">...טוען...</p>
+            </div>
+            <div class="card">
+                <h2>סה"כ לא מגיעים</h2>
+                <p id="totalDeclined">...טוען...</p>
+            </div>
+            <div class="card">
+                <h2>סה"כ אולי-אין עדיין תשובה</h2>
+                <p id="totalUncertain">...טוען...</p>
+            </div>
+            <div class="card">
+                <h2>שורות "אין מענה"</h2>
+                <p id="totalNoResponseRows">...טוען...</p>
+            </div>
+        </div>
+
+        <h2>רשימת מוזמנים</h2>
+        <table id="guestTable">
+            <thead>
+                <tr>
+                    <th>שם מלא</th>
+                    <th>מספר טלפון</th>
+                    <th>סטטוס</th>
+                    <th>כמה מגיעים</th>
+                    <th>הערות</th>
+                </tr>
+            </thead>
+            <tbody>
+                </tbody>
+        </table>
+    </div>
+
+    <script>
+        // ************ שלב חשוב מאוד! ************
+        // הדבק כאן את כתובת ה-URL של ה-Web App שלך שקיבלת משלב 1!
+        const GOOGLE_SHEETS_WEB_APP_URL = "https://script.google.com/macros/s/AKfycbzRnqsZ519UaBk7hUGy3usjUaOfuy3lmZPOyOOtfGPzUfTWHMRmiRduXKn5Ox3rye1onQ/exec"; 
+        // לדוגמה: "https://script.google.com/macros/s/AKfycx.../exec";
+
+        async function fetchData() {
+            try {
+                // מבצע בקשת רשת (FETCH) לכתובת ה-URL של ה-Web App
+                const response = await fetch(GOOGLE_SHEETS_WEB_APP_URL);
+                if (!response.ok) {
+                    throw new Error(`HTTP error! status: ${response.status}`);
+                }
+                // המרה של התשובה לפורמט JSON
+                const data = await response.json();
+                console.log(data); // מדפיס את הנתונים לקונסול בדפדפן - שימושי לבדיקה
+
+                // עדכון התוכן של ריבועי הסיכום באתר
+                document.getElementById('totalConfirmed').textContent = data.totalConfirmed;
+                document.getElementById('totalDeclined').textContent = data.totalDeclined;
+                document.getElementById('totalUncertain').textContent = data.totalUncertain;
+                document.getElementById('totalNoResponseRows').textContent = data.totalNoResponseRows;
+
+                // עדכון טבלת המוזמנים
+                const guestTableBody = document.querySelector('#guestTable tbody');
+                guestTableBody.innerHTML = ''; // מנקה תוכן קודם בטבלה
+                
+                // עובר על כל מוזמן ברשימת המוזמנים ומכניס אותו לשורה חדשה בטבלה
+                data.guests.forEach(guest => {
+                    const row = guestTableBody.insertRow(); // יוצר שורה חדשה בטבלה
+                    row.insertCell().textContent = guest.fullName;
+                    row.insertCell().textContent = guest.phoneNumber;
+                    row.insertCell().textContent = guest.status;
+                    row.insertCell().textContent = guest.guestCount;
+                    row.insertCell().textContent = guest.notes;
+                });
+
+            } catch (error) {
+                console.error("שגיאה בקבלת הנתונים:", error);
+                // במקרה של שגיאה, הצג הודעת שגיאה בריבועים ובטבלה
+                document.getElementById('totalConfirmed').textContent = "שגיאה";
+                document.getElementById('totalDeclined').textContent = "שגיאה";
+                document.getElementById('totalUncertain').textContent = "שגיאה";
+                document.getElementById('totalNoResponseRows').textContent = "שגיאה";
+                document.querySelector('#guestTable tbody').innerHTML = '<tr><td colspan="5">שגיאה בטעינת הנתונים.</td></tr>';
+            }
+        }
+
+        // קורא לנתונים בפעם הראשונה כשהדף נטען
+        fetchData();
+
+        // מגדיר רענון אוטומטי של הנתונים כל 60 שניות (60000 מילישניות)
+        // זה מה שגורם לאתר "להתעדכן" כשמשנים את ה-Sheets.
+        setInterval(fetchData, 60000); 
+    </script>
+</body>
+</html>

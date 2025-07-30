@@ -12,6 +12,11 @@
             color: #333;
             direction: rtl; /* יישור לימין עבור עברית */
             text-align: right; /* יישור לימין */
+            /* הוספת תמונת רקע */
+            background-image: url('bro.jpg');
+            background-size: cover; /* מכסה את כל הרקע */
+            background-attachment: fixed; /* מקבע את התמונה בעת גלילה */
+            background-position: center center; /* ממקם את התמונה במרכז */
         }
 
         .container {
@@ -25,7 +30,6 @@
 
         h1 {
             text-align: center;
-            /* *** שינוי: צבע כחול לכותרת *** */
             color: #007bff; /* כחול */
             margin-bottom: 30px;
         }
@@ -38,7 +42,6 @@
         }
 
         .card {
-            /* צבע רקע כללי שיהפוך לצבע ספציפי לסטטוס */
             background-color: #e0e0e0; /* אפור בהיר כברירת מחדל */
             border: 1px solid #c0c0c0;
             border-radius: 5px;
@@ -52,7 +55,6 @@
             transition: background-color 0.3s ease, border-color 0.3s ease; /* אפקט מעבר חלק בלחיצה */
         }
 
-        /* *** שינוי: צבעים ספציפיים לכרטיסים לפי סטטוס *** */
         .card.confirmed {
             background-color: #d4edda; /* ירוק בהיר */
             border-color: #28a745; /* ירוק */
@@ -118,7 +120,7 @@
             width: fit-content;
             margin: 20px auto;
             padding: 10px 20px;
-            background-color: #007bff; /* *** שינוי: כחול לכפתור הצג הכל *** */
+            background-color: #007bff; /* כחול לכפתור הצג הכל */
             color: white;
             border: none;
             border-radius: 5px;

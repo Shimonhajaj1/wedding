@@ -25,7 +25,6 @@
 
         h1 {
             text-align: center;
-            /* *** שינוי: צבע כחול לכותרת *** */
             color: #007bff; /* כחול */
             margin-bottom: 30px;
         }
@@ -38,7 +37,6 @@
         }
 
         .card {
-            /* צבע רקע כללי שיהפוך לצבע ספציפי לסטטוס */
             background-color: #e0e0e0; /* אפור בהיר כברירת מחדל */
             border: 1px solid #c0c0c0;
             border-radius: 5px;
@@ -52,7 +50,7 @@
             transition: background-color 0.3s ease, border-color 0.3s ease; /* אפקט מעבר חלק בלחיצה */
         }
 
-        /* *** שינוי: צבעים ספציפיים לכרטיסים לפי סטטוס *** */
+        /* צבעים ספציפיים לכרטיסים לפי סטטוס */
         .card.confirmed {
             background-color: #d4edda; /* ירוק בהיר */
             border-color: #28a745; /* ירוק */
@@ -80,7 +78,7 @@
         }
 
         .card h2 {
-            color: #333; /* צבע טקסט כללי, ירושה מצבע הטקסט הראשי */
+            color: #333;
             margin-top: 0;
             font-size: 1.1em;
         }
@@ -94,7 +92,29 @@
         .card p {
             font-size: 1.8em;
             font-weight: bold;
+            display: flex;
+            justify-content: center;
+            align-items: center;
+            min-height: 1.8em; /* שומר על גובה מינימלי עקבי */
         }
+
+        /* סגנון עיגול טעינה */
+        .loader {
+            border: 4px solid #f3f3f3; /* Light grey */
+            border-top: 4px solid #a0a0a0; /* Grey for the spinning part */
+            border-radius: 50%;
+            width: 20px;
+            height: 20px;
+            animation: spin 1s linear infinite;
+            display: inline-block; /* כדי שיהיה באמצע השורה */
+            margin: auto; /* למרכז את הטוען בתוך ה-p */
+        }
+
+        @keyframes spin {
+            0% { transform: rotate(0deg); }
+            100% { transform: rotate(360deg); }
+        }
+
 
         table {
             width: 100%;
@@ -118,7 +138,7 @@
             width: fit-content;
             margin: 20px auto;
             padding: 10px 20px;
-            background-color: #007bff; /* *** שינוי: כחול לכפתור הצג הכל *** */
+            background-color: #007bff; /* כחול לכפתור הצג הכל */
             color: white;
             border: none;
             border-radius: 5px;
@@ -140,20 +160,16 @@
         <div class="summary-cards">
             <div class="card confirmed" id="cardConfirmed">
                 <h2>סה"כ מגיעים</h2>
-                <p id="totalConfirmed">...טוען...</p>
-            </div>
+                <p id="totalConfirmed"></p> </div>
             <div class="card declined" id="cardDeclined">
                 <h2>סה"כ לא מגיעים</h2>
-                <p id="totalDeclined">...טוען...</p>
-            </div>
+                <p id="totalDeclined"></p> </div>
             <div class="card uncertain" id="cardUncertain">
                 <h2>סה"כ אולי-אין עדיין תשובה</h2>
-                <p id="totalUncertain">...טוען...</p>
-            </div>
+                <p id="totalUncertain"></p> </div>
             <div class="card no-response" id="cardNoResponse">
                 <h2>שורות "אין מענה"</h2>
-                <p id="totalNoResponseRows">...טוען...</p>
-            </div>
+                <p id="totalNoResponseRows"></p> </div>
         </div>
 
         <button class="show-all-button" id="showAllGuestsButton" style="display: none;">הצג את כל המוזמנים</button>
@@ -180,7 +196,25 @@
         
         let allGuestsData = []; 
 
+        // פונקציית עזר להצגת טוען
+        function showLoader(elementId) {
+            const element = document.getElementById(elementId);
+            element.innerHTML = '<div class="loader"></div>';
+        }
+
+        // פונקציית עזר להצגת טוען בטבלה
+        function showTableLoader() {
+            document.querySelector('#guestTable tbody').innerHTML = '<tr><td colspan="5"><div class="loader" style="margin: auto;"></div></td></tr>';
+        }
+
         async function fetchData() {
+            // הצג את הטוענים לפני בקשת הנתונים
+            showLoader('totalConfirmed');
+            showLoader('totalDeclined');
+            showLoader('totalUncertain');
+            showLoader('totalNoResponseRows');
+            showTableLoader(); // הצג טוען בטבלה
+            
             try {
                 const response = await fetch(GOOGLE_SHEETS_WEB_APP_URL);
                 if (!response.ok) {
@@ -189,7 +223,8 @@
                 const data = await response.json();
                 console.log(data); 
 
-                // עדכון ריבועי הסיכום
+                // עדכון ריבועי הסיכום עם הנתונים בפועל
+                // נעדכן את ה-textContent ישירות, זה יחליף את ה-loader
                 document.getElementById('totalConfirmed').textContent = data.totalConfirmed;
                 document.getElementById('totalDeclined').textContent = data.totalDeclined;
                 document.getElementById('totalUncertain').textContent = data.totalUncertain;
@@ -215,7 +250,7 @@
 
         function displayGuests(guestsToDisplay) {
             const guestTableBody = document.querySelector('#guestTable tbody');
-            guestTableBody.innerHTML = ''; 
+            guestTableBody.innerHTML = ''; // נקה את התוכן הקיים (כולל טוען)
             if (guestsToDisplay.length === 0) {
                 guestTableBody.innerHTML = '<tr><td colspan="5">אין מוזמנים בסטטוס זה.</td></tr>';
                 return;
@@ -260,8 +295,10 @@
             document.getElementById('showAllGuestsButton').style.display = 'block'; 
         }
 
+        // טעינה ראשונית של הנתונים
         fetchData();
 
+        // רענון הנתונים כל 60 שניות
         setInterval(fetchData, 60000); 
 
         // הוספת אירועי לחיצה לריבועי הסיכום

@@ -185,7 +185,7 @@
         <table id="guestTable">
             <thead>
                 <tr>
-                    <th>שם מלא</th>
+                    <th>מספר סידורי</th> <th>שם מלא</th>
                     <th>מספר טלפון</th>
                     <th>סטטוס</th>
                     <th>כמה מגיעים</th>
@@ -211,7 +211,7 @@
 
         // פונקציית עזר להצגת טוען בטבלה
         function showTableLoader() {
-            document.querySelector('#guestTable tbody').innerHTML = '<tr><td colspan="5"><div class="loader" style="margin: auto;"></div></td></tr>';
+            document.querySelector('#guestTable tbody').innerHTML = '<tr><td colspan="6"><div class="loader" style="margin: auto;"></div></td></tr>';
         }
 
         async function fetchData() {
@@ -251,7 +251,7 @@
                 document.getElementById('totalDeclined').textContent = "שגיאה";
                 document.getElementById('totalUncertain').textContent = "שגיאה";
                 document.getElementById('totalNoResponseRows').textContent = "שגיאה";
-                document.querySelector('#guestTable tbody').innerHTML = '<tr><td colspan="5">שגיאה בטעינת הנתונים.</td></tr>';
+                document.querySelector('#guestTable tbody').innerHTML = '<tr><td colspan="6">שגיאה בטעינת הנתונים.</td></tr>';
             }
         }
 
@@ -259,11 +259,16 @@
             const guestTableBody = document.querySelector('#guestTable tbody');
             guestTableBody.innerHTML = ''; // נקה את התוכן הקיים (כולל טוען)
             if (guestsToDisplay.length === 0) {
-                guestTableBody.innerHTML = '<tr><td colspan="5">אין מוזמנים בסטטוס זה.</td></tr>';
+                guestTableBody.innerHTML = '<tr><td colspan="6">אין מוזמנים בסטטוס זה.</td></tr>';
                 return;
             }
+            let serialNumber = 1; // מונה חדש למספר סידורי
             guestsToDisplay.forEach(guest => {
                 const row = guestTableBody.insertRow();
+                
+                // הוספת עמודה למספר סידורי
+                row.insertCell().textContent = serialNumber++;
+
                 row.insertCell().textContent = guest.fullName;
                 
                 const phoneNumberCell = row.insertCell();
@@ -323,7 +328,7 @@
         fetchData();
 
         // רענון הנתונים כל 60 שניות
-        setInterval(fetchData, 60000); 
+        setInterval(fetchData, 120000); 
 
         // הוספת אירועי לחיצה לריבועי הסיכום
         document.getElementById('cardConfirmed').addEventListener('click', () => filterGuestsByStatus('מגיע'));
@@ -337,7 +342,6 @@
             document.querySelectorAll('.card').forEach(card => card.classList.remove('active'));
             document.getElementById('showAllGuestsButton').style.display = 'none';
         });
-
     </script>
 </body>
 </html>

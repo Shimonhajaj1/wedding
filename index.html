@@ -151,6 +151,13 @@
             background-color: #0056b3;
         }
 
+        /* סגנון חדש לתא עם מספר טלפון שגוי */
+        .phone-error {
+            background-color: #f8d7da; /* אדום בהיר, כמו Declined */
+            color: #dc3545; /* אדום כהה */
+            font-weight: bold;
+        }
+
     </style>
 </head>
 <body>
@@ -258,7 +265,24 @@
             guestsToDisplay.forEach(guest => {
                 const row = guestTableBody.insertRow();
                 row.insertCell().textContent = guest.fullName;
-                row.insertCell().textContent = guest.phoneNumber;
+                
+                const phoneNumberCell = row.insertCell();
+                const cleanPhoneNumber = guest.phoneNumber.replace(/-/g, '');
+                
+                // הוספנו תנאי חדש לבדיקת תקינות מספר הטלפון
+                if (guest.fullName && (guest.phoneNumber === "" || cleanPhoneNumber.length !== 10)) {
+                    phoneNumberCell.textContent = guest.phoneNumber || "חסר";
+                    phoneNumberCell.classList.add('phone-error');
+                } else {
+                    // פורמט מחדש של מספר הטלפון אם הוא תקין (3 ספרות ואז מקף)
+                    if (cleanPhoneNumber.length === 10) {
+                        const formattedNumber = cleanPhoneNumber.substring(0, 3) + '-' + cleanPhoneNumber.substring(3);
+                        phoneNumberCell.textContent = formattedNumber;
+                    } else {
+                        phoneNumberCell.textContent = guest.phoneNumber;
+                    }
+                }
+
                 row.insertCell().textContent = guest.status;
                 row.insertCell().textContent = guest.guestCount;
                 row.insertCell().textContent = guest.notes;
